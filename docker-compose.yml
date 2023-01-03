@@ -5,7 +5,7 @@ services:
     environment:
       - POSTGRES_USER=root
       - POSTGRES_PASSWORD=root
-      - POSTGRES_DB=admybrand
+      - POSTGRES_DB=khushi
 
   api:
     build:
@@ -14,6 +14,6 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - DB_SOURCE=postgresql://root:root@postgres:5432/admybrand?sslmode=disable
+      - DB_SOURCE=postgresql://root:root@postgres:5432/khushi?sslmode=disable
     depends_on:
       - postgres
