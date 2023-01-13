@@ -20,7 +20,7 @@ func ErrorResponse(err error) fiber.Map {
 func SuccessResponse(data interface{}, message string) fiber.Map {
 	return fiber.Map{
 		"status":  true,
-		"data":    message,
-		"message": data,
+		"data":    data,
+		"message": message,
 	}
 }

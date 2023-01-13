@@ -7,7 +7,7 @@ import (
 	"database/sql"
 	"log"
 
-	"github.com/Xebec19/miniature-giggle/backend/util"
+	"github.com/Xebec19/silver-engine/util"
 	_ "github.com/lib/pq"
 )
 

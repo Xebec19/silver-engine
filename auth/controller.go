@@ -5,8 +5,8 @@ import (
 	"database/sql"
 	"time"
 
-	db "github.com/Xebec19/miniature-giggle/backend/db/sqlc"
-	"github.com/Xebec19/miniature-giggle/backend/util"
+	db "github.com/Xebec19/silver-engine/db/sqlc"
+	"github.com/Xebec19/silver-engine/util"
 	"github.com/gofiber/fiber/v2"
 )
 
