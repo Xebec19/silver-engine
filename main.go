@@ -3,9 +3,10 @@ package main
 import (
 	"log"
 
-	"github.com/Xebec19/miniature-giggle/backend/auth"
-	db "github.com/Xebec19/miniature-giggle/backend/db/sqlc"
-	"github.com/Xebec19/miniature-giggle/backend/util"
+	"github.com/Xebec19/silver-engine/auth"
+	db "github.com/Xebec19/silver-engine/db/sqlc"
+	"github.com/Xebec19/silver-engine/products"
+	"github.com/Xebec19/silver-engine/util"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
@@ -24,6 +25,7 @@ func main() {
 
 	// set Routes
 	auth.SetRoute(app)
+	products.SetRoute(app)
 
 	// load env
 	config, err := util.LoadConfig(".")

@@ -13,6 +13,9 @@ migrate:
 new-migration:
 	atlas migrate new --dir "file://db/migration/"
 
+apply-migrate:
+	 sudo atlas schema apply --url "postgres://root:root@localhost:5432/khushidb?sslmode=disable" --to "file://db/migration/20221213125830.sql" --dev-url "docker://postgres/12/khushi"
+
 server:
 	go run main.go
 
@@ -22,4 +25,4 @@ test:
 sqlc:
 	sqlc generate
 
-.PHONY: postgres createdb dropdb test sqlc server migrate new-migration
+.PHONY: postgres createdb dropdb test sqlc server migrate new-migration apply-migrate
