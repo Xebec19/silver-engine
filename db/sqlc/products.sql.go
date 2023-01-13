@@ -7,7 +7,54 @@ package db
 
 import (
 	"context"
+	"database/sql"
 )
+
+const readAllProducts = `-- name: ReadAllProducts :many
+SELECT product_id, product_name, product_image, quantity, product_desc from v_products limit $1 offset $2
+`
+
+type ReadAllProductsParams struct {
+	Limit  int32 `json:"limit"`
+	Offset int32 `json:"offset"`
+}
+
+type ReadAllProductsRow struct {
+	ProductID    int32          `json:"product_id"`
+	ProductName  string         `json:"product_name"`
+	ProductImage sql.NullString `json:"product_image"`
+	Quantity     sql.NullInt32  `json:"quantity"`
+	ProductDesc  sql.NullString `json:"product_desc"`
+}
+
+func (q *Queries) ReadAllProducts(ctx context.Context, arg ReadAllProductsParams) ([]ReadAllProductsRow, error) {
+	rows, err := q.db.QueryContext(ctx, readAllProducts, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ReadAllProductsRow
+	for rows.Next() {
+		var i ReadAllProductsRow
+		if err := rows.Scan(
+			&i.ProductID,
+			&i.ProductName,
+			&i.ProductImage,
+			&i.Quantity,
+			&i.ProductDesc,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
 
 const readCategoryProduct = `-- name: ReadCategoryProduct :many
 SELECT product_id, product_name, product_image, quantity, created_on, price, delivery_price, product_desc, gender, category_id, category_name, country_id, country_name FROM v_products WHERE category_id = $1
