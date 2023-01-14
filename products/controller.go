@@ -28,12 +28,12 @@ func readCategories(c *fiber.Ctx) error {
 read products sends array of products in paginated form
 */
 func readProducts(c *fiber.Ctx) error {
-	page, err := strconv.Atoi(c.Query("page"))
+	page, err := strconv.Atoi(c.Query("page", "0"))
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(util.ErrorResponse(err))
 	}
 
-	size, err := strconv.Atoi(c.Query("size"))
+	size, err := strconv.Atoi(c.Query("size", "0"))
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(util.ErrorResponse(err))
 	}
