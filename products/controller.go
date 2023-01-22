@@ -10,7 +10,7 @@ import (
 )
 
 /*
-/products/get-categories [get]
+/products/categories [get]
 read categories sends category details
 */
 func readCategories(c *fiber.Ctx) error {
