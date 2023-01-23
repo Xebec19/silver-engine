@@ -10,19 +10,7 @@ info:
     name: GNU GENERAL PUBLIC LICENSE
   title: khushi-backend
   version: "1.0"
-paths:
-  /category/v1/list:
-    get:
-      parameters:
-      - description: query params
-        in: query
-        name: request
-        required: true
-        type: string
-      responses:
-        "201":
-          description: Created
-      summary: Read all categories
+paths: {}
 schemes:
 - http
 swagger: "2.0"

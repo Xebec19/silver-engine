@@ -17,25 +17,5 @@
     },
     "host": "localhost:8080",
     "basePath": "/",
-    "paths": {
-        "/category/v1/list": {
-            "get": {
-                "summary": "Read all categories",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "query params",
-                        "name": "request",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created"
-                    }
-                }
-            }
-        }
-    }
+    "paths": {}
 }

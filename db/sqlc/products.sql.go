@@ -56,6 +56,53 @@ func (q *Queries) ReadAllProducts(ctx context.Context, arg ReadAllProductsParams
 	return items, nil
 }
 
+const readCategoryItems = `-- name: ReadCategoryItems :many
+SELECT product_id, product_name, product_image, quantity, product_desc from v_products where category_id = $1 limit $2 offset $3
+`
+
+type ReadCategoryItemsParams struct {
+	CategoryID int32 `json:"category_id"`
+	Limit      int32 `json:"limit"`
+	Offset     int32 `json:"offset"`
+}
+
+type ReadCategoryItemsRow struct {
+	ProductID    int32          `json:"product_id"`
+	ProductName  string         `json:"product_name"`
+	ProductImage sql.NullString `json:"product_image"`
+	Quantity     sql.NullInt32  `json:"quantity"`
+	ProductDesc  sql.NullString `json:"product_desc"`
+}
+
+func (q *Queries) ReadCategoryItems(ctx context.Context, arg ReadCategoryItemsParams) ([]ReadCategoryItemsRow, error) {
+	rows, err := q.db.QueryContext(ctx, readCategoryItems, arg.CategoryID, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ReadCategoryItemsRow
+	for rows.Next() {
+		var i ReadCategoryItemsRow
+		if err := rows.Scan(
+			&i.ProductID,
+			&i.ProductName,
+			&i.ProductImage,
+			&i.Quantity,
+			&i.ProductDesc,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const readCategoryProduct = `-- name: ReadCategoryProduct :many
 SELECT product_id, product_name, product_image, quantity, created_on, price, delivery_price, product_desc, gender, category_id, category_name, country_id, country_name FROM v_products WHERE category_id = $1
 `

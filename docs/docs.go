@@ -21,27 +21,7 @@ const docTemplate = `{
     },
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
-    "paths": {
-        "/category/v1/list": {
-            "get": {
-                "summary": "Read all categories",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "query params",
-                        "name": "request",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created"
-                    }
-                }
-            }
-        }
-    }
+    "paths": {}
 }`
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it

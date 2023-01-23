@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/Xebec19/silver-engine/auth"
+	"github.com/Xebec19/silver-engine/category"
 	db "github.com/Xebec19/silver-engine/db/sqlc"
 	_ "github.com/Xebec19/silver-engine/docs"
 	"github.com/Xebec19/silver-engine/product"
@@ -40,6 +41,7 @@ func main() {
 
 	// set Routes
 	auth.SetRoute(app)
+	category.SetRoute(app)
 	product.SetRoute(app)
 
 	// load env

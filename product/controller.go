@@ -9,28 +9,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-// @Summary	Read all categories
-// @Param		request	query		string	true	"query params"
-// @Success	201
-// @Router		/category/v1/list [get]
-func readCategories(c *fiber.Ctx) error {
-	category, err := db.DBQuery.ReadAllCategories(context.Background())
-
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(util.ErrorResponse(err))
-	}
-
-	return c.Status(fiber.StatusCreated).JSON(util.SuccessResponse(category, "Category fetched successfully"))
-}
-
-/*
-/products/items [get]
-read products sends array of products in paginated form
-*/
-//	@Summary	Read all categories
-//	@Param		request	query		string	true	"query params"
-//	@Success	201
-//	@Router		/category/v1/list [get]
 func readProducts(c *fiber.Ctx) error {
 	page, err := strconv.Atoi(c.Query("page", "0"))
 	if err != nil {
@@ -56,22 +34,33 @@ func readProducts(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(util.SuccessResponse(products, "Products fetched successfully"))
 }
 
-/*
-/products/category/:category-id [get]
-get products in a category
-*/
-func readCategoryWiseProducts(c *fiber.Ctx) error {
-	categoryId, err := strconv.Atoi(c.Query("category-id", "0"))
-
+func readCategoryItems(c *fiber.Ctx) error {
+	categoryId, err := strconv.Atoi(c.Params("cid", "0"))
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(util.ErrorResponse(err))
 	}
 
-	category, err := db.DBQuery.ReadOneCategory(context.Background(), int32(categoryId))
+	page, err := strconv.Atoi(c.Query("page", "0"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(util.ErrorResponse(err))
+	}
+
+	size, err := strconv.Atoi(c.Query("size", "0"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(util.ErrorResponse(err))
+	}
+
+	argv := db.ReadCategoryItemsParams{
+		CategoryID: int32(categoryId),
+		Offset:     int32(page) * int32(size),
+		Limit:      int32(size),
+	}
+
+	items, err := db.DBQuery.ReadCategoryItems(context.Background(), argv)
 
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(util.ErrorResponse(err))
 	}
 
-	return c.Status(fiber.StatusOK).JSON(util.SuccessResponse(category, "Category fetched successfully"))
+	return c.Status(fiber.StatusFound).JSON(util.SuccessResponse(items, "Category items fetched"))
 }
