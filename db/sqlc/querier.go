@@ -14,6 +14,7 @@ type Querier interface {
 	ReadAllCategories(ctx context.Context) ([]ReadAllCategoriesRow, error)
 	ReadAllProducts(ctx context.Context, arg ReadAllProductsParams) ([]ReadAllProductsRow, error)
 	ReadCategoryProduct(ctx context.Context, categoryID int32) ([]VProduct, error)
+	ReadOneCategory(ctx context.Context, categoryID int32) (ReadOneCategoryRow, error)
 }
 
 var _ Querier = (*Queries)(nil)

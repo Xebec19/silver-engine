@@ -25,4 +25,10 @@ test:
 sqlc:
 	sqlc generate
 
-.PHONY: postgres createdb dropdb test sqlc server migrate new-migration apply-migrate
+swag: 
+	exec ~/go/bin/swag init
+
+swag-fmt:
+	exec ~/go/bin/swag fmt
+
+.PHONY: postgres createdb dropdb test sqlc server migrate new-migration apply-migrate swag
