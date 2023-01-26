@@ -31,4 +31,7 @@ swag:
 swag-fmt:
 	exec ~/go/bin/swag fmt
 
-.PHONY: postgres createdb dropdb test sqlc server migrate new-migration apply-migrate swag
+debug:
+	exec ~/go/bin/air
+
+.PHONY: postgres createdb dropdb test sqlc server migrate new-migration apply-migrate swag swag-fmt debug

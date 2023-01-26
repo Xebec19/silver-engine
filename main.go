@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/Xebec19/silver-engine/auth"
+	"github.com/Xebec19/silver-engine/category"
 	db "github.com/Xebec19/silver-engine/db/sqlc"
 	_ "github.com/Xebec19/silver-engine/docs"
 	"github.com/Xebec19/silver-engine/product"
@@ -15,22 +16,35 @@ import (
 	"github.com/gofiber/swagger"
 )
 
-//	@title			khushi-backend
-//	@version		1.0
-//	@description	This is a Go application having JWT authentication, Unit tests,etc using postgresql as database
-//	@host			localhost:8080
-//	@BasePath		/
-//	@schemes		http
-//	@contact.name	Rohan Kumar Thakur
-//	@contact.email	rohandeveloper106@gmail.com
-//	@license.name	GNU GENERAL PUBLIC LICENSE
+// @title			khushi-backend
+// @version		1.0
+// @description	This is a Go application having JWT authentication, Unit tests,etc using postgresql as database
+// @host			localhost:8080
+// @BasePath		/
+// @schemes		http
+// @contact.name	Rohan Kumar Thakur
+// @contact.email	rohandeveloper106@gmail.com
+// @license.name	GNU GENERAL PUBLIC LICENSE
 func main() {
+	// load env
+	config, err := util.LoadConfig(".")
+	if err != nil {
+		log.Fatal("cannot load config:", err)
+	}
+
 	app := fiber.New()
 
 	app.Get("/swagger/*", swagger.HandlerDefault)
 
-	app.Use(limiter.New())
+	// set up rate limiter
+	if config.Env != "development" {
+		app.Use(limiter.New())
+	}
+
+	// set up logger
 	app.Use(logger.New())
+
+	// set up cors
 	app.Use(cors.New())
 
 	// Connect to database
@@ -40,13 +54,8 @@ func main() {
 
 	// set Routes
 	auth.SetRoute(app)
+	category.SetRoute(app)
 	product.SetRoute(app)
-
-	// load env
-	config, err := util.LoadConfig(".")
-	if err != nil {
-		log.Fatal("cannot load config:", err)
-	}
 
 	// start server
 	log.Printf("Server listening on %v", config.ServerAddress)

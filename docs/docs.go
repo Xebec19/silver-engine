@@ -22,21 +22,24 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/category/v1/list": {
+        "/category/v1/details/:id": {
             "get": {
-                "summary": "Read all categories",
+                "summary": "read one category",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "query params",
-                        "name": "request",
-                        "in": "query",
+                        "description": "Category ID",
+                        "name": "id",
+                        "in": "path",
                         "required": true
                     }
                 ],
                 "responses": {
                     "201": {
-                        "description": "Created"
+                        "description": "Created",
+                        "schema": {
+                            "type": ""
+                        }
                     }
                 }
             }

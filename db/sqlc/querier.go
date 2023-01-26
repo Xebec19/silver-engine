@@ -13,6 +13,7 @@ type Querier interface {
 	FindUserOne(ctx context.Context, email string) (FindUserOneRow, error)
 	ReadAllCategories(ctx context.Context) ([]ReadAllCategoriesRow, error)
 	ReadAllProducts(ctx context.Context, arg ReadAllProductsParams) ([]ReadAllProductsRow, error)
+	ReadCategoryItems(ctx context.Context, arg ReadCategoryItemsParams) ([]ReadCategoryItemsRow, error)
 	ReadCategoryProduct(ctx context.Context, categoryID int32) ([]VProduct, error)
 	ReadOneCategory(ctx context.Context, categoryID int32) (ReadOneCategoryRow, error)
 }
