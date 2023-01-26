@@ -9,6 +9,7 @@ type Config struct {
 	DBSource      string `mapstructure:"DB_SOURCE"`
 	ServerAddress string `mapstructure:"SERVER_ADDRESS"`
 	JwtSecret     string `mapstructure:"JWT_SECRET"`
+	Env           string `mapstructure:"ENV"`
 }
 
 func LoadConfig(path string) (config Config, err error) {
