@@ -1,5 +1,5 @@
 postgres:
-	docker run --name khushi --network khushi -e POSTGRES_USER=root -e POSTGRES_PASSWORD=root -dp 5432:5432 postgres:12-alpine
+	docker run --name khushi -e POSTGRES_USER=root -e POSTGRES_PASSWORD=root -dp 5432:5432 postgres:12-alpine
 
 createdb:
 	docker exec -it khushi createdb --username=root --owner=root khushidb
