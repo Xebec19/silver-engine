@@ -8,13 +8,13 @@ dropdb:
 	docker exec -it khushi dropdb khushidb
 
 migrate:
-	atlas schema inspect -u 'postgres://root:root@localhost:5432/khushidb?sslmode=disable' > schema.hcl
+	atlas schema inspect -u 'postgres://root:root@localhost:5432/khushidb?sslmode=disable' > schema.hcl --log "{{ sql . }}"
 
 new-migration:
 	atlas migrate new --dir "file://db/migration/"
 
 apply-migrate:
-	 sudo atlas schema apply --url "postgres://root:root@localhost:5432/khushidb?sslmode=disable" --to "file://db/migration/20221213125830.sql" --dev-url "docker://postgres/12/khushi"
+	 sudo atlas schema apply --url "postgres://root:root@localhost:5432/khushidb?sslmode=disable" --to "file://db/migration/20221213130343.sql" --dev-url "docker://postgres/12/khushi"
 
 server:
 	go run main.go
