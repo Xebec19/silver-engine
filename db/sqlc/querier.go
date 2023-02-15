@@ -6,6 +6,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 )
 
 type Querier interface {
@@ -17,6 +18,7 @@ type Querier interface {
 	ReadCategoryProduct(ctx context.Context, categoryID int32) ([]VProduct, error)
 	ReadOneCategory(ctx context.Context, categoryID int32) (ReadOneCategoryRow, error)
 	ReadOneProduct(ctx context.Context, productID int32) (ReadOneProductRow, error)
+	ReadQuantity(ctx context.Context, productID int32) (sql.NullInt32, error)
 }
 
 var _ Querier = (*Queries)(nil)

@@ -567,3 +567,18 @@ INSERT INTO products
   (6,'Tasty Rubber Shirt','http://placeimg.com/640/480/fashion',92732,'22/1/2022','3/11/2022','active',968.54,421.97,'Dolores corrupti in hic. Id omnis et inventore. Rerum cumque velit et fuga. Enim velit non sint.','Female',1),
   (9,'Unbranded Steel Mouse','http://placeimg.com/640/480/fashion',90818,'7/4/2022','3/11/2022','active',489.26,429.15,'Reiciendis est fugiat consequatur assumenda recusandae. Veniam adipisci ullam. Incidunt dolore aut praesentium beatae velit libero voluptatem molestiae magni. Praesentium reiciendis voluptatem officiis omnis excepturi perspiciatis assumenda.','Female',1);
   
+create or replace function create_cart() returns trigger as 
+$attach_cart$
+begin 
+insert into carts(user_id,price,delivery_price,total) values(new.user_id,0,0,0);
+return NEW;
+end;
+$attach_cart$ LANGUAGE plpgsql;
+
+create trigger attach_cart after insert on users
+for each row execute procedure create_cart();
+
+create view v_cart as select c.user_id, c.cart_id, cd.cd_id as "card_item_id", cd.product_id, p.price, cd.quantity, p.delivery_price
+from cart_details cd
+join carts c on c.cart_id = cd.cart_id 
+join products p on cd.product_id = p.product_id;
