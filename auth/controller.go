@@ -34,12 +34,17 @@ func register(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(util.ErrorResponse(err))
 	}
 
+	passwordHash, err := util.HashPassword(req.Password)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(util.ErrorResponse(err))
+	}
+
 	args := db.CreateUserParams{
 		FirstName: req.FirstName,
 		LastName:  sql.NullString{String: req.LastName, Valid: true},
 		Email:     req.Email,
 		Phone:     sql.NullInt64{Int64: req.Phone, Valid: true},
-		Password:  req.Password,
+		Password:  passwordHash,
 	}
 	// save user in db
 	user, err := db.DBQuery.CreateUser(context.Background(), args)
@@ -65,6 +70,13 @@ func login(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(util.ErrorResponse(err))
 	}
+
+	// check user password
+	err = util.CheckPassword(req.Password, user.Password)
+	if err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(util.ErrorResponse(err))
+	}
+
 	// generate token to user
 	token, err := util.CreateToken(user.Email, 24*time.Hour)
 	if err != nil {
