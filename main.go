@@ -2,13 +2,17 @@ package main
 
 import (
 	"log"
+	"os"
 
 	"github.com/Xebec19/silver-engine/auth"
+	"github.com/Xebec19/silver-engine/cart"
 	db "github.com/Xebec19/silver-engine/db/sqlc"
 	_ "github.com/Xebec19/silver-engine/docs"
+	"github.com/Xebec19/silver-engine/middleware"
 	"github.com/Xebec19/silver-engine/product"
 	"github.com/Xebec19/silver-engine/util"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cache"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/gofiber/fiber/v2/middleware/logger"
@@ -25,6 +29,18 @@ import (
 // @contact.email	rohandeveloper106@gmail.com
 // @license.name	GNU GENERAL PUBLIC LICENSE
 func main() {
+
+	file, err := os.OpenFile("./my_logs.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatalf("error opening file: %v", err)
+	}
+	defer file.Close()
+
+	// Set config for logger
+	loggerConfig := logger.Config{
+		Output: file, // add file to save output
+	}
+
 	// load env
 	config, err := util.LoadConfig(".")
 	if err != nil {
@@ -41,7 +57,11 @@ func main() {
 	}
 
 	// set up logger
+	app.Use(logger.New(loggerConfig))
 	app.Use(logger.New())
+
+	// set up cache
+	app.Use(cache.New())
 
 	// set up cors
 	app.Use(cors.New())
@@ -51,9 +71,14 @@ func main() {
 
 	// render API Docs
 
-	// set Routes
+	// Public Routes
 	auth.SetRoute(app)
 	product.SetRoute(app)
+
+	app.Use(middleware.JwtVerify)
+
+	// Private Routes
+	cart.SetRoute(app)
 
 	// start server
 	log.Printf("Server listening on %v", config.ServerAddress)
