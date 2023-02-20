@@ -11,3 +11,15 @@
 [23:54:22] 404 - 59.182µs POST /cart/add-product
 [23:57:31] 404 - 45.366µs POST /cart/add-product
 [23:57:32] 404 - 53.186µs POST /cart/add-product
+[21:04:22] 404 - 152.971364ms POST /auth/login
+[21:04:34] 201 - 124.001348ms POST /auth/login
+[22:00:27] 404 - 1.181453ms POST /auth/login
+[22:02:01] 201 - 138.12449ms POST /auth/login
+[22:09:03] 200 - 338.512µs GET /cart/add-product
+[22:39:39] 200 - 470.842µs GET /cart/add-product
+[22:40:43] 200 - 29.0292846s GET /cart/add-product
+[22:41:23] 200 - 82.588µs GET /cart/add-product
+[22:44:10] 201 - 100.22416ms POST /auth/login
+[22:44:19] 200 - 379.879µs GET /cart/add-product
+[22:49:37] 200 - 7.105776718s GET /cart/add-product
+[23:13:14] 201 - 117.474862ms POST /auth/login

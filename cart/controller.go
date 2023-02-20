@@ -8,6 +8,7 @@ import (
 	db "github.com/Xebec19/silver-engine/db/sqlc"
 	"github.com/Xebec19/silver-engine/util"
 	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt/v4"
 )
 
 type addProductSchema struct {
@@ -19,7 +20,9 @@ type addProductSchema struct {
 // @Router /cart/add-product
 func addProductIntoCart(c *fiber.Ctx) error {
 	req := new(addProductSchema)
-	userId := c.Locals("claims").(int32) // todo fetch user id
+	user := c.Locals("user").(*jwt.Token)
+	claims := user.Claims.(jwt.MapClaims)
+	userId := claims["userid"].(int32)
 	// parse and validate request body
 	if err := c.BodyParser(req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(util.ErrorResponse(err))

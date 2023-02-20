@@ -8,7 +8,6 @@ import (
 	"github.com/Xebec19/silver-engine/cart"
 	db "github.com/Xebec19/silver-engine/db/sqlc"
 	_ "github.com/Xebec19/silver-engine/docs"
-	"github.com/Xebec19/silver-engine/middleware"
 	"github.com/Xebec19/silver-engine/product"
 	"github.com/Xebec19/silver-engine/util"
 	"github.com/gofiber/fiber/v2"
@@ -75,7 +74,19 @@ func main() {
 	auth.SetRoute(app)
 	product.SetRoute(app)
 
-	app.Use(middleware.JwtVerify)
+	app.Use(func(ctx *fiber.Ctx) error {
+		token := ctx.Get("Authorization")
+		claims, err := util.VerifyToken(token)
+
+		if err != nil {
+			return ctx.Status(fiber.StatusUnauthorized).JSON(util.ErrorResponse(err))
+		}
+
+		ctx.Locals("user", claims)
+
+		ctx.Next()
+		return nil
+	})
 
 	// Private Routes
 	cart.SetRoute(app)
