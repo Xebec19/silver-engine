@@ -78,7 +78,7 @@ func login(c *fiber.Ctx) error {
 	}
 
 	// generate token to user
-	token, err := util.CreateToken(user.Email, 24*time.Hour)
+	token, err := util.CreateToken(user.UserID, 24*time.Hour)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(util.ErrorResponse(err))
 	}

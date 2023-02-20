@@ -14,16 +14,10 @@ var (
 )
 
 // CreateToken expects email of user and generates a jwt token
-func CreateToken(email string, duration time.Duration) (string, error) {
-	// create token with claims
-	// tokenId, err := uuid.NewRandom()
-	// if err != nil {
-	// 	log.Fatal(err.Error())
-	// 	return "", err
-	// }
+func CreateToken(userid int32, duration time.Duration) (string, error) {
+
 	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"ID":        12,
-		"Email":     email,
+		"Userid":    userid,
 		"IssuedAt":  time.Now(),
 		"ExpiredAt": time.Now().Add(duration),
 	})
@@ -43,7 +37,7 @@ func CreateToken(email string, duration time.Duration) (string, error) {
 }
 
 // VerifyToken expects a jwt token, verifies it and sends its payload
-func VerifyToken(tokenString string) (interface{}, error) {
+func VerifyToken(tokenString string) (jwt.MapClaims, error) {
 	// parse given token
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
