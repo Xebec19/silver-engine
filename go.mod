@@ -33,7 +33,6 @@ require (
 
 require (
 	github.com/andybalholm/brotli v1.0.4 // indirect
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/gofiber/fiber v1.14.6
 	github.com/hashicorp/hcl v1.0.0 // indirect
