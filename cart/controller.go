@@ -8,7 +8,6 @@ import (
 	db "github.com/Xebec19/silver-engine/db/sqlc"
 	"github.com/Xebec19/silver-engine/util"
 	"github.com/gofiber/fiber/v2"
-	"github.com/golang-jwt/jwt/v4"
 )
 
 type addProductSchema struct {
@@ -20,9 +19,7 @@ type addProductSchema struct {
 // @Router /cart/add-product
 func addProductIntoCart(c *fiber.Ctx) error {
 	req := new(addProductSchema)
-	user := c.Locals("user").(*jwt.Token)
-	claims := user.Claims.(jwt.MapClaims)
-	userId := claims["userid"].(int32)
+	userId := c.Locals("userid").(int64)
 	// parse and validate request body
 	if err := c.BodyParser(req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(util.ErrorResponse(err))
@@ -30,7 +27,7 @@ func addProductIntoCart(c *fiber.Ctx) error {
 
 	args := db.ReadProductQuantityInCardParams{
 		ProductID: sql.NullInt32{Int32: req.ProductId, Valid: true},
-		UserID:    sql.NullInt32{Int32: userId, Valid: true},
+		UserID:    sql.NullInt32{Int32: int32(userId), Valid: true},
 	}
 
 	quantity, err := db.DBQuery.ReadProductQuantityInCard(context.Background(), args)
@@ -54,7 +51,7 @@ func addProductIntoCart(c *fiber.Ctx) error {
 			return c.Status(fiber.StatusBadRequest).JSON(util.ErrorResponse(errors.New("out of stock")))
 		}
 
-		cartId, err := db.DBQuery.GetCartID(context.Background(), sql.NullInt32{Int32: userId, Valid: true})
+		cartId, err := db.DBQuery.GetCartID(context.Background(), sql.NullInt32{Int32: int32(userId), Valid: true})
 
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(util.ErrorResponse(err))
@@ -76,7 +73,7 @@ func addProductIntoCart(c *fiber.Ctx) error {
 		product is already available in cart, we now handle the case when product is newly added to
 		cart
 	*/
-	cartId, err := db.DBQuery.GetCartID(context.Background(), sql.NullInt32{Int32: userId, Valid: true})
+	cartId, err := db.DBQuery.GetCartID(context.Background(), sql.NullInt32{Int32: int32(userId), Valid: true})
 
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(util.ErrorResponse(err))

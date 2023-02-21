@@ -81,8 +81,7 @@ func main() {
 		if err != nil {
 			return ctx.Status(fiber.StatusUnauthorized).JSON(util.ErrorResponse(err))
 		}
-
-		ctx.Locals("user", claims)
+		ctx.Locals("userid", int64(claims["Userid"].(float64))) // todo find a way to get these tokens in ctx
 
 		ctx.Next()
 		return nil
