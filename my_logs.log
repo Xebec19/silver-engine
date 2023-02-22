@@ -38,3 +38,12 @@
 [23:22:31] 400 - 13.850586808s POST /cart/add-product
 [23:24:16] 400 - 13.978434952s POST /cart/add-product
 [23:25:01] 500 - 17.09742917s POST /cart/add-product
+[21:44:40] 500 - 16.071003413s POST /cart/add-product
+[21:45:26] 500 - 2.883944907s POST /cart/add-product
+[21:45:41] 500 - 55.712160214s POST /cart/add-product
+[21:46:43] 500 - 3m44.740139019s POST /cart/add-product
+[21:50:35] 500 - 6.341451515s POST /cart/add-product
+[21:51:05] 500 - 5.175272ms POST /cart/add-product
+[21:51:07] 500 - 1.363682ms POST /cart/add-product
+[21:51:24] 500 - 9.461782ms POST /cart/add-product
+[22:26:07] 500 - 7.197683ms POST /cart/add-product

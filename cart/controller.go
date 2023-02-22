@@ -1,7 +1,6 @@
 package cart
 
 import (
-	"context"
 	"database/sql"
 	"errors"
 
@@ -25,67 +24,72 @@ func addProductIntoCart(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(util.ErrorResponse(err))
 	}
 
-	args := db.ReadProductQuantityInCardParams{
+	stock, err := db.DBQuery.ReadQuantity(c.Context(), req.ProductId)
+
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(util.ErrorResponse(err))
+	}
+
+	if req.Quantity > int16(stock.Int32) {
+		return c.Status(fiber.StatusNotAcceptable).JSON(util.ErrorResponse(errors.New("out of stock")))
+	}
+
+	args := db.IsProductInCartParams{
 		ProductID: sql.NullInt32{Int32: req.ProductId, Valid: true},
 		UserID:    sql.NullInt32{Int32: int32(userId), Valid: true},
 	}
 
-	quantity, err := db.DBQuery.ReadProductQuantityInCard(context.Background(), args)
+	isProductInCart, err := db.DBQuery.IsProductInCart(c.Context(), args)
 
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(util.ErrorResponse(err))
 	}
 
-	// fetch current stock of given product
-	stock, err := db.DBQuery.ReadQuantity(context.Background(), int32(req.ProductId))
-
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(util.ErrorResponse(err))
-	}
-
-	// if cart already has given item, we simply increment
-	// the quantity
-	if quantity > 0 {
-		// check if merchant have enough stock to complete order
-		if int16(quantity)+req.Quantity > int16(stock.Int32) {
-			return c.Status(fiber.StatusBadRequest).JSON(util.ErrorResponse(errors.New("out of stock")))
+	if isProductInCart.(bool) {
+		args := db.ReadCartItemQuantityParams{
+			ProductID: sql.NullInt32{Int32: req.ProductId, Valid: true},
+			UserID:    sql.NullInt32{Int32: int32(userId), Valid: true},
 		}
 
-		cartId, err := db.DBQuery.GetCartID(context.Background(), sql.NullInt32{Int32: int32(userId), Valid: true})
+		prevQuantity, err := db.DBQuery.ReadCartItemQuantity(c.Context(), args)
 
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(util.ErrorResponse(err))
 		}
 
-		args := db.UpdateProductQuantityParams{
-			Quantity:  sql.NullInt32{Int32: int32(req.Quantity), Valid: true},
-			ProductID: sql.NullInt32{Int32: int32(req.ProductId), Valid: true},
-			CartID:    sql.NullInt32{Int32: cartId, Valid: true},
+		if int16(prevQuantity.Int32)+req.Quantity > int16(stock.Int32) {
+			return c.Status(fiber.StatusNotAcceptable).JSON(util.ErrorResponse(errors.New("out of stock")))
 		}
 
-		db.DBQuery.UpdateProductQuantity(context.Background(), args)
+		cartId, err := db.DBQuery.GetCartID(c.Context(), sql.NullInt32{Int32: int32(userId), Valid: true})
+
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(util.ErrorResponse(err))
+		}
+
+		args2 := db.UpdateCartItemQuantityParams{
+			ProductID: sql.NullInt32{Int32: req.ProductId, Valid: true},
+			CartID:    sql.NullInt32{Int32: cartId, Valid: true},
+			Quantity:  sql.NullInt32{Int32: int32(req.Quantity), Valid: true},
+		}
+
+		db.DBQuery.UpdateCartItemQuantity(c.Context(), args2)
 
 		return c.Status(fiber.StatusCreated).JSON(util.SuccessResponse(nil, "Quantity updated in cart"))
 	}
 
-	/*
-		given we have handled the case when
-		product is already available in cart, we now handle the case when product is newly added to
-		cart
-	*/
-	cartId, err := db.DBQuery.GetCartID(context.Background(), sql.NullInt32{Int32: int32(userId), Valid: true})
+	cartId, err := db.DBQuery.GetCartID(c.Context(), sql.NullInt32{Int32: int32(userId), Valid: true})
 
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(util.ErrorResponse(err))
 	}
 
 	args2 := db.InsertCartItemParams{
-		CartID:    sql.NullInt32{Int32: cartId, Valid: true},
-		ProductID: sql.NullInt32{Int32: req.ProductId, Valid: true},
-		Quantity:  sql.NullInt32{Int32: int32(quantity), Valid: true},
+		CartID:    sql.NullInt32{Int32: int32(cartId), Valid: true},
+		ProductID: sql.NullInt32{Int32: int32(req.ProductId), Valid: true},
+		Quantity:  sql.NullInt32{Int32: int32(req.Quantity), Valid: true},
 	}
 
-	db.DBQuery.InsertCartItem(context.Background(), args2)
-
-	return c.Status(fiber.StatusCreated).JSON(util.SuccessResponse(nil, "Product added in cart"))
+	db.DBQuery.InsertCartItem(c.Context(), args2)
+	return c.Status(fiber.StatusCreated).JSON(util.SuccessResponse(nil, "Quantity updated in cart"))
 }
