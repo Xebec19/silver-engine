@@ -1,7 +1,11 @@
--- name: ReadProductQuantityInCard :one
-select sum(quantity) as quantity from v_cart vc group by product_id having product_id = $1 and user_id = $2 ;
+-- name: IsProductInCart :one
+select case when exists (select product_id from v_cart vc where product_id = $1 and user_id = $2)
+then 1 else 0 end is_product_in_cart;
 
--- name: UpdateProductQuantity :exec
+-- name: ReadCartItemQuantity :one
+select quantity from v_cart vc where product_id = $1 and user_id = $2;
+
+-- name: UpdateCartItemQuantity :exec
 update cart_details set quantity = $1 + quantity where product_id = $2 and cart_id = $3;
 
 -- name: GetCartID :one

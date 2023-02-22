@@ -38,33 +38,50 @@ func (q *Queries) InsertCartItem(ctx context.Context, arg InsertCartItemParams) 
 	return err
 }
 
-const readProductQuantityInCard = `-- name: ReadProductQuantityInCard :one
-select sum(quantity) as quantity from v_cart vc group by product_id having product_id = $1 and user_id = $2
+const isProductInCart = `-- name: IsProductInCart :one
+select case when exists (select product_id from v_cart vc where product_id = $1 and user_id = $2)
+then 1 else 0 end is_product_in_cart
 `
 
-type ReadProductQuantityInCardParams struct {
+type IsProductInCartParams struct {
 	ProductID sql.NullInt32 `json:"product_id"`
 	UserID    sql.NullInt32 `json:"user_id"`
 }
 
-func (q *Queries) ReadProductQuantityInCard(ctx context.Context, arg ReadProductQuantityInCardParams) (int64, error) {
-	row := q.db.QueryRowContext(ctx, readProductQuantityInCard, arg.ProductID, arg.UserID)
-	var quantity int64
+func (q *Queries) IsProductInCart(ctx context.Context, arg IsProductInCartParams) (interface{}, error) {
+	row := q.db.QueryRowContext(ctx, isProductInCart, arg.ProductID, arg.UserID)
+	var is_product_in_cart interface{}
+	err := row.Scan(&is_product_in_cart)
+	return is_product_in_cart, err
+}
+
+const readCartItemQuantity = `-- name: ReadCartItemQuantity :one
+select quantity from v_cart vc where product_id = $1 and user_id = $2
+`
+
+type ReadCartItemQuantityParams struct {
+	ProductID sql.NullInt32 `json:"product_id"`
+	UserID    sql.NullInt32 `json:"user_id"`
+}
+
+func (q *Queries) ReadCartItemQuantity(ctx context.Context, arg ReadCartItemQuantityParams) (sql.NullInt32, error) {
+	row := q.db.QueryRowContext(ctx, readCartItemQuantity, arg.ProductID, arg.UserID)
+	var quantity sql.NullInt32
 	err := row.Scan(&quantity)
 	return quantity, err
 }
 
-const updateProductQuantity = `-- name: UpdateProductQuantity :exec
+const updateCartItemQuantity = `-- name: UpdateCartItemQuantity :exec
 update cart_details set quantity = $1 + quantity where product_id = $2 and cart_id = $3
 `
 
-type UpdateProductQuantityParams struct {
+type UpdateCartItemQuantityParams struct {
 	Quantity  sql.NullInt32 `json:"quantity"`
 	ProductID sql.NullInt32 `json:"product_id"`
 	CartID    sql.NullInt32 `json:"cart_id"`
 }
 
-func (q *Queries) UpdateProductQuantity(ctx context.Context, arg UpdateProductQuantityParams) error {
-	_, err := q.db.ExecContext(ctx, updateProductQuantity, arg.Quantity, arg.ProductID, arg.CartID)
+func (q *Queries) UpdateCartItemQuantity(ctx context.Context, arg UpdateCartItemQuantityParams) error {
+	_, err := q.db.ExecContext(ctx, updateCartItemQuantity, arg.Quantity, arg.ProductID, arg.CartID)
 	return err
 }
