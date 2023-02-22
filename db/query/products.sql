@@ -11,4 +11,4 @@ SELECT product_id, product_name, product_image, quantity, product_desc from v_pr
 SELECT product_id, product_name, product_image, product_desc, price, delivery_price, category_id, category_name from v_products where product_id = $1;
 
 -- name: ReadQuantity :one
-SELECT quantity from v_products where product_id = $1 and status = 'active';
+SELECT quantity from v_products where product_id = $1;

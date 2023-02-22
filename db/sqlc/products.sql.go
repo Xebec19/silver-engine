@@ -176,7 +176,7 @@ func (q *Queries) ReadOneProduct(ctx context.Context, productID int32) (ReadOneP
 }
 
 const readQuantity = `-- name: ReadQuantity :one
-SELECT quantity from v_products where product_id = $1 and status = 'active'
+SELECT quantity from v_products where product_id = $1
 `
 
 func (q *Queries) ReadQuantity(ctx context.Context, productID int32) (sql.NullInt32, error) {

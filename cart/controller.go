@@ -11,7 +11,7 @@ import (
 
 type addProductSchema struct {
 	ProductId int32 `json:"product_id" binding:"required"`
-	Quantity  int16 `json:"quantity" binding:"required"`
+	Quantity  int32 `json:"quantity" binding:"required"`
 }
 
 // @Summary Add a product to users cart
@@ -30,7 +30,7 @@ func addProductIntoCart(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(util.ErrorResponse(err))
 	}
 
-	if req.Quantity > int16(stock.Int32) {
+	if req.Quantity > int32(stock.Int32) {
 		return c.Status(fiber.StatusNotAcceptable).JSON(util.ErrorResponse(errors.New("out of stock")))
 	}
 
@@ -45,7 +45,7 @@ func addProductIntoCart(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(util.ErrorResponse(err))
 	}
 
-	if isProductInCart.(bool) {
+	if isProductInCart.(int64) != int64(0) {
 		args := db.ReadCartItemQuantityParams{
 			ProductID: sql.NullInt32{Int32: req.ProductId, Valid: true},
 			UserID:    sql.NullInt32{Int32: int32(userId), Valid: true},
@@ -57,7 +57,7 @@ func addProductIntoCart(c *fiber.Ctx) error {
 			return c.Status(fiber.StatusInternalServerError).JSON(util.ErrorResponse(err))
 		}
 
-		if int16(prevQuantity.Int32)+req.Quantity > int16(stock.Int32) {
+		if prevQuantity.Int32+req.Quantity > stock.Int32 {
 			return c.Status(fiber.StatusNotAcceptable).JSON(util.ErrorResponse(errors.New("out of stock")))
 		}
 
@@ -78,18 +78,20 @@ func addProductIntoCart(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusCreated).JSON(util.SuccessResponse(nil, "Quantity updated in cart"))
 	}
 
-	cartId, err := db.DBQuery.GetCartID(c.Context(), sql.NullInt32{Int32: int32(userId), Valid: true})
+	getCartIDParams := sql.NullInt32{Int32: int32(userId), Valid: true}
+
+	cartId, err := db.DBQuery.GetCartID(c.Context(), getCartIDParams)
 
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(util.ErrorResponse(err))
 	}
 
-	args2 := db.InsertCartItemParams{
+	insertCartItemParams := db.InsertCartItemParams{
 		CartID:    sql.NullInt32{Int32: int32(cartId), Valid: true},
 		ProductID: sql.NullInt32{Int32: int32(req.ProductId), Valid: true},
 		Quantity:  sql.NullInt32{Int32: int32(req.Quantity), Valid: true},
 	}
 
-	db.DBQuery.InsertCartItem(c.Context(), args2)
+	db.DBQuery.InsertCartItem(c.Context(), insertCartItemParams)
 	return c.Status(fiber.StatusCreated).JSON(util.SuccessResponse(nil, "Quantity updated in cart"))
 }

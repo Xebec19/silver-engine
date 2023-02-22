@@ -582,3 +582,36 @@ create view v_cart as select c.user_id, c.cart_id, cd.cd_id as "card_item_id", c
 from cart_details cd
 join carts c on c.cart_id = cd.cart_id 
 join products p on cd.product_id = p.product_id;
+
+CREATE OR REPLACE FUNCTION update_cart() 
+RETURNS TRIGGER AS 
+$update_cart$
+BEGIN
+    UPDATE cart_details c 
+    SET product_price = ((SELECT price 
+                          FROM products p1 
+                          WHERE p1.product_id = c.product_id) * quantity), 
+        delivery_price = ((SELECT delivery_price 
+                            FROM products p1 
+                            WHERE p1.product_id = c.product_id) * quantity) 
+    WHERE cart_id = NEW.cart_id;
+
+    UPDATE carts c 
+    SET price = (SELECT COALESCE(SUM(product_price), 0) 
+                 FROM cart_details cd 
+                 WHERE cd.cart_id = c.cart_id),
+        delivery_price = (SELECT COALESCE(SUM(delivery_price), 0) 
+                          FROM cart_details cd 
+                          WHERE cd.cart_id = c.cart_id)
+    WHERE cart_id = NEW.cart_id;
+
+    RETURN NEW;
+END;
+$update_cart$ 
+LANGUAGE plpgsql;
+
+create trigger insert_cart after insert on cart_details
+for each row execute procedure update_cart();
+
+create trigger update_cart after update on cart_details
+for each row execute procedure update_cart();
