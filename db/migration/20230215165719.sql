@@ -663,3 +663,25 @@ BEGIN
 	
 END;
 $$ LANGUAGE plpgsql;
+
+ALTER TABLE public."order" RENAME TO orders;
+
+-- PROCEDURE TO CREATE ORDER
+CREATE OR REPLACE PROCEDURE create_order (user_id INTEGER)
+AS $$
+DECLARE user_cart_id INTEGER;
+DECLARE sum_price INTEGER;
+DECLARE sum_delv_price INTEGER;
+DECLARE user_order_id INTEGER;
+BEGIN
+  SELECT cart_id INTO user_cart_id FROM carts WHERE user_id = $1;
+  SELECT INTO sum_price, sum_delv_price 
+  SUM(price), SUM(delivery_price) FROM cart_details cd 
+ WHERE cart_id = user_cart_id group by cart_id;
+  INSERT INTO orders (user_id,price,delivery_price,total) 
+  VALUES(user_id, sum_price, sum_delv_price, sum_price + sum_delv_price) RETURNING order_id into user_order_id;
+  INSERT INTO order_details (order_id,product_id,product_price, quantity, delivery_price) 
+  SELECT user_order_id, product_id, product_price, quantity, delivery_price 
+  from cart_details WHERE cart_id = user_cart_id;
+  END;
+$$ LANGUAGE plpgsql;

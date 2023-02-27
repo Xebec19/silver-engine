@@ -11,11 +11,14 @@ import (
 
 type Querier interface {
 	AddItemToCart(ctx context.Context, arg AddItemToCartParams) error
+	CreateOrder(ctx context.Context, userID int32) error
 	CreateUser(ctx context.Context, arg CreateUserParams) (int32, error)
 	FindUserOne(ctx context.Context, email string) (FindUserOneRow, error)
 	GetCartID(ctx context.Context, userID sql.NullInt32) (int32, error)
+	GetOrderDetails(ctx context.Context, orderID sql.NullString) ([]OrderDetail, error)
 	InsertCartItem(ctx context.Context, arg InsertCartItemParams) error
 	IsProductInCart(ctx context.Context, arg IsProductInCartParams) (interface{}, error)
+	ListOrder(ctx context.Context, userID int32) ([]ListOrderRow, error)
 	ReadAllCategories(ctx context.Context) ([]ReadAllCategoriesRow, error)
 	ReadAllProducts(ctx context.Context, arg ReadAllProductsParams) ([]ReadAllProductsRow, error)
 	ReadCartItemQuantity(ctx context.Context, arg ReadCartItemQuantityParams) (sql.NullInt32, error)
