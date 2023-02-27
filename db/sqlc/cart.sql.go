@@ -10,6 +10,21 @@ import (
 	"database/sql"
 )
 
+const addItemToCart = `-- name: AddItemToCart :exec
+CALL add_to_cart($1,$2,$3)
+`
+
+type AddItemToCartParams struct {
+	ProductID int32 `json:"product_id"`
+	Quantity  int32 `json:"quantity"`
+	UserID    int32 `json:"user_id"`
+}
+
+func (q *Queries) AddItemToCart(ctx context.Context, arg AddItemToCartParams) error {
+	_, err := q.db.ExecContext(ctx, addItemToCart, arg.ProductID, arg.Quantity, arg.UserID)
+	return err
+}
+
 const getCartID = `-- name: GetCartID :one
 select cart_id from carts where user_id = $1
 `
@@ -69,6 +84,21 @@ func (q *Queries) ReadCartItemQuantity(ctx context.Context, arg ReadCartItemQuan
 	var quantity sql.NullInt32
 	err := row.Scan(&quantity)
 	return quantity, err
+}
+
+const removeItemFromCart = `-- name: RemoveItemFromCart :exec
+CALL remove_item($1,$2,$3)
+`
+
+type RemoveItemFromCartParams struct {
+	ProductID int32 `json:"product_id"`
+	Quantity  int32 `json:"quantity"`
+	UserID    int32 `json:"user_id"`
+}
+
+func (q *Queries) RemoveItemFromCart(ctx context.Context, arg RemoveItemFromCartParams) error {
+	_, err := q.db.ExecContext(ctx, removeItemFromCart, arg.ProductID, arg.Quantity, arg.UserID)
+	return err
 }
 
 const updateCartItemQuantity = `-- name: UpdateCartItemQuantity :exec
