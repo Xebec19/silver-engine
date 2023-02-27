@@ -10,6 +10,7 @@ import (
 )
 
 type Querier interface {
+	AddItemToCart(ctx context.Context, arg AddItemToCartParams) error
 	CreateUser(ctx context.Context, arg CreateUserParams) (int32, error)
 	FindUserOne(ctx context.Context, email string) (FindUserOneRow, error)
 	GetCartID(ctx context.Context, userID sql.NullInt32) (int32, error)
@@ -23,6 +24,7 @@ type Querier interface {
 	ReadOneCategory(ctx context.Context, categoryID int32) (ReadOneCategoryRow, error)
 	ReadOneProduct(ctx context.Context, productID int32) (ReadOneProductRow, error)
 	ReadQuantity(ctx context.Context, productID int32) (sql.NullInt32, error)
+	RemoveItemFromCart(ctx context.Context, arg RemoveItemFromCartParams) error
 	UpdateCartItemQuantity(ctx context.Context, arg UpdateCartItemQuantityParams) error
 }
 

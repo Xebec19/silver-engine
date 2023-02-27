@@ -15,3 +15,9 @@ select cart_id from carts where user_id = $1;
 insert into cart_details (cart_id,product_id,product_price,quantity,delivery_price)
 values($1,$2,(select price from products p where p.product_id = $2),$3,
 (select delivery_price from products p where p.product_id = $2));
+
+-- name: AddItemToCart :exec
+CALL add_to_cart($1,$2,$3);
+
+-- name: RemoveItemFromCart :exec
+CALL remove_item($1,$2,$3);

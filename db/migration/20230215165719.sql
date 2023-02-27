@@ -582,3 +582,84 @@ create view v_cart as select c.user_id, c.cart_id, cd.cd_id as "card_item_id", c
 from cart_details cd
 join carts c on c.cart_id = cd.cart_id 
 join products p on cd.product_id = p.product_id;
+
+CREATE OR REPLACE FUNCTION update_cart() 
+RETURNS TRIGGER AS 
+$update_cart$
+BEGIN
+    UPDATE cart_details c 
+    SET product_price = ((SELECT price 
+                          FROM products p1 
+                          WHERE p1.product_id = c.product_id) * quantity), 
+        delivery_price = ((SELECT delivery_price 
+                            FROM products p1 
+                            WHERE p1.product_id = c.product_id) * quantity) 
+    WHERE cart_id = NEW.cart_id;
+
+    UPDATE carts c 
+    SET price = (SELECT COALESCE(SUM(product_price), 0) 
+                 FROM cart_details cd 
+                 WHERE cd.cart_id = c.cart_id),
+        delivery_price = (SELECT COALESCE(SUM(delivery_price), 0) 
+                          FROM cart_details cd 
+                          WHERE cd.cart_id = c.cart_id)
+    WHERE cart_id = NEW.cart_id;
+
+    RETURN NEW;
+END;
+$update_cart$ 
+LANGUAGE plpgsql;
+
+create trigger insert_cart after insert on cart_details
+for each row execute procedure update_cart();
+
+create trigger update_cart after update on cart_details
+for each row execute procedure update_cart();
+
+-- PROCEDURE TO ADD ITEMS IN CART
+CREATE OR REPLACE PROCEDURE add_to_cart(product_id INTEGER, quantity INTEGER, user_id INTEGER)
+AS $$
+DECLARE
+  available_quantity INTEGER; 
+DECLARE 
+	user_cart_id INTEGER;
+BEGIN
+  -- Check if the required quantity is available in stock
+  SELECT quantity INTO available_quantity FROM v_products vp WHERE product_id = $1;
+  IF available_quantity < $2 THEN
+    RAISE EXCEPTION 'Insufficient stock quantity';
+  END IF;
+ 
+ select cart_id into user_cart_id from carts c where user_id = $3;
+
+  -- Check if the user already has the specified product in their cart
+  IF EXISTS (SELECT 1 FROM cart_details WHERE cart_id = user_cart_id AND product_id = $1) THEN
+    -- If the product already exists in the user's cart, update the quantity
+    UPDATE cart_details SET quantity = quantity + $2 WHERE user_id = $3 AND product_id = $1;
+  ELSE
+    -- If the product does not exist in the user's cart, insert a new record
+    INSERT INTO cart_details(cart_id , product_id, quantity) VALUES(user_cart_id, $1, $2);
+  END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Remove item from cart
+CREATE OR REPLACE PROCEDURE remove_item(product_id INTEGER, quantity INTEGER, user_id INTEGER)
+AS $$ 
+DECLARE current_quantity INTEGER;
+DECLARE user_cart_id INTEGER;
+BEGIN
+	SELECT id INTO user_cart_id FROM cart WHERE user_id = $3;
+	SELECT quantity INTO current_quantity FROM cart_details WHERE cart_id = user_cart_id AND product_id = $1;
+    -- we take quantity to be removed, and check if it is greater than
+    -- its quantity in cart, we delete that item from cart
+	IF current_quantity <= $2 THEN 
+	  DELETE FROM cart_details WHERE product_id = $1 AND cart_id = user_cart_id;
+	ELSE 
+    -- below decrement given quantity of given product 
+    -- from cart by given quantity
+	  UPDATE cart_details SET quantity = quantity - $2 WHERE cart_id = user_cart_id AND product_id = $1;
+	END IF;
+	
+END;
+$$ LANGUAGE plpgsql;

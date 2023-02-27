@@ -47,3 +47,9 @@
 [21:51:07] 500 - 1.363682ms POST /cart/add-product
 [21:51:24] 500 - 9.461782ms POST /cart/add-product
 [22:26:07] 500 - 7.197683ms POST /cart/add-product
+[23:32:08] 500 - 11.262582956s POST /cart/add-product
+[23:35:56] 500 - 58.833865601s POST /cart/add-product
+[23:37:26] 201 - 126.681977ms POST /auth/login
+[23:37:38] 201 - 13.645198785s POST /cart/add-product
+[23:38:12] 201 - 14.252765152s POST /cart/add-product
+[00:12:44] 201 - 13.000823741s POST /cart/add-product
