@@ -53,3 +53,12 @@
 [23:37:38] 201 - 13.645198785s POST /cart/add-product
 [23:38:12] 201 - 14.252765152s POST /cart/add-product
 [00:12:44] 201 - 13.000823741s POST /cart/add-product
+[23:46:58] 400 - 154.329µs POST /auth/register
+[23:54:18] 400 - 235.929µs POST /auth/register
+[23:54:39] 400 - 25.628147923s POST /auth/register
+[23:55:05] 400 - 6.833889988s POST /auth/register
+[23:55:39] 201 - 20.526292029s POST /auth/register
+[23:58:31] 201 - 128.70921ms POST /auth/login
+[00:02:18] 400 - 401.856µs POST /cart/add-product
+[00:02:39] 400 - 13.221525001s POST /cart/add-product
+[00:03:18] 201 - 9.943580493s POST /cart/add-product
