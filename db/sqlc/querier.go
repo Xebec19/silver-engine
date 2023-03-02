@@ -11,6 +11,7 @@ import (
 
 type Querier interface {
 	AddItemToCart(ctx context.Context, arg AddItemToCartParams) error
+	CheckCartDetail(ctx context.Context, arg CheckCartDetailParams) (interface{}, error)
 	CreateOrder(ctx context.Context, userID int32) error
 	CreateUser(ctx context.Context, arg CreateUserParams) (int32, error)
 	FindUserOne(ctx context.Context, email string) (FindUserOneRow, error)

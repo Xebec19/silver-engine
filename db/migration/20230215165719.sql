@@ -617,7 +617,7 @@ create trigger update_cart after update on cart_details
 for each row execute procedure update_cart();
 
 -- PROCEDURE TO ADD ITEMS IN CART
-CREATE OR REPLACE PROCEDURE add_to_cart(product_id INTEGER, quantity INTEGER, user_id INTEGER)
+CREATE OR REPLACE PROCEDURE add_to_cart(pid INTEGER, qty INTEGER, userid INTEGER)
 AS $$
 DECLARE
   available_quantity INTEGER; 
@@ -625,21 +625,22 @@ DECLARE
 	user_cart_id INTEGER;
 BEGIN
   -- Check if the required quantity is available in stock
-  SELECT quantity INTO available_quantity FROM v_products vp WHERE product_id = $1;
-  IF available_quantity < $2 THEN
+  SELECT vp.quantity INTO available_quantity FROM v_products vp WHERE vp.product_id = pid;
+  IF available_quantity < qty THEN
     RAISE EXCEPTION 'Insufficient stock quantity';
   END IF;
  
- select cart_id into user_cart_id from carts c where user_id = $3;
+ select c.cart_id into user_cart_id from carts c where c.user_id = userid;
 
   -- Check if the user already has the specified product in their cart
-  IF EXISTS (SELECT 1 FROM cart_details WHERE cart_id = user_cart_id AND product_id = $1) THEN
+  IF EXISTS (SELECT 1 FROM cart_details cd WHERE cd.cart_id = user_cart_id AND cd.product_id = pid) THEN
     -- If the product already exists in the user's cart, update the quantity
-    UPDATE cart_details SET quantity = quantity + $2 WHERE user_id = $3 AND product_id = $1;
+    UPDATE cart_details cd SET cd.quantity = cd.quantity + qty WHERE cd.user_id = userid AND cd.product_id = pid;
   ELSE
     -- If the product does not exist in the user's cart, insert a new record
-    INSERT INTO cart_details(cart_id , product_id, quantity) VALUES(user_cart_id, $1, $2);
+    INSERT INTO cart_details(cart_id , product_id, quantity) VALUES(user_cart_id, pid, userid);
   END IF;
+  COMMIT;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -660,6 +661,7 @@ BEGIN
     -- from cart by given quantity
 	  UPDATE cart_details SET quantity = quantity - $2 WHERE cart_id = user_cart_id AND product_id = $1;
 	END IF;
+    COMMIT;
 	
 END;
 $$ LANGUAGE plpgsql;
@@ -683,5 +685,6 @@ BEGIN
   INSERT INTO order_details (order_id,product_id,product_price, quantity, delivery_price) 
   SELECT user_order_id, product_id, product_price, quantity, delivery_price 
   from cart_details WHERE cart_id = user_cart_id;
+  COMMIT;
   END;
 $$ LANGUAGE plpgsql;

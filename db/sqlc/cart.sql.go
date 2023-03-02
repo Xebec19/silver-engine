@@ -15,14 +15,31 @@ CALL add_to_cart($1,$2,$3)
 `
 
 type AddItemToCartParams struct {
-	ProductID int32 `json:"product_id"`
-	Quantity  int32 `json:"quantity"`
-	UserID    int32 `json:"user_id"`
+	Pid    int32 `json:"pid"`
+	Qty    int32 `json:"qty"`
+	Userid int32 `json:"userid"`
 }
 
 func (q *Queries) AddItemToCart(ctx context.Context, arg AddItemToCartParams) error {
-	_, err := q.db.ExecContext(ctx, addItemToCart, arg.ProductID, arg.Quantity, arg.UserID)
+	_, err := q.db.ExecContext(ctx, addItemToCart, arg.Pid, arg.Qty, arg.Userid)
 	return err
+}
+
+const checkCartDetail = `-- name: CheckCartDetail :one
+select case when count(quantity) > 0 then 1 else 0 end as product_exists from cart_details cd 
+where cart_id = $1 and product_id = $2
+`
+
+type CheckCartDetailParams struct {
+	CartID    sql.NullInt32 `json:"cart_id"`
+	ProductID sql.NullInt32 `json:"product_id"`
+}
+
+func (q *Queries) CheckCartDetail(ctx context.Context, arg CheckCartDetailParams) (interface{}, error) {
+	row := q.db.QueryRowContext(ctx, checkCartDetail, arg.CartID, arg.ProductID)
+	var product_exists interface{}
+	err := row.Scan(&product_exists)
+	return product_exists, err
 }
 
 const getCartID = `-- name: GetCartID :one

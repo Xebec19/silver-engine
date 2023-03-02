@@ -1,7 +1,3 @@
--- name: IsProductInCart :one
-select case when exists (select product_id from v_cart vc where product_id = $1 and user_id = $2)
-then 1 else 0 end is_product_in_cart;
-
 -- name: ReadCartItemQuantity :one
 select quantity from v_cart vc where product_id = $1 and user_id = $2;
 
@@ -15,6 +11,10 @@ select cart_id from carts where user_id = $1;
 insert into cart_details (cart_id,product_id,product_price,quantity,delivery_price)
 values($1,$2,(select price from products p where p.product_id = $2),$3,
 (select delivery_price from products p where p.product_id = $2));
+
+-- name: CheckCartDetail :one
+select case when count(quantity) > 0 then 1 else 0 end as product_exists from cart_details cd 
+where cart_id = $1 and product_id = $2;
 
 -- name: AddItemToCart :exec
 CALL add_to_cart($1,$2,$3);
