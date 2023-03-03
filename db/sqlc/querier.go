@@ -10,14 +10,13 @@ import (
 )
 
 type Querier interface {
-	AddItemToCart(ctx context.Context, arg AddItemToCartParams) error
-	CreateOrder(ctx context.Context, userID int32) error
+	CheckCartDetail(ctx context.Context, arg CheckCartDetailParams) (interface{}, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (int32, error)
+	DeleteCartItem(ctx context.Context, arg DeleteCartItemParams) error
 	FindUserOne(ctx context.Context, email string) (FindUserOneRow, error)
 	GetCartID(ctx context.Context, userID sql.NullInt32) (int32, error)
 	GetOrderDetails(ctx context.Context, orderID sql.NullString) ([]OrderDetail, error)
 	InsertCartItem(ctx context.Context, arg InsertCartItemParams) error
-	IsProductInCart(ctx context.Context, arg IsProductInCartParams) (interface{}, error)
 	ListOrder(ctx context.Context, userID int32) ([]ListOrderRow, error)
 	ReadAllCategories(ctx context.Context) ([]ReadAllCategoriesRow, error)
 	ReadAllProducts(ctx context.Context, arg ReadAllProductsParams) ([]ReadAllProductsRow, error)
@@ -26,8 +25,8 @@ type Querier interface {
 	ReadCategoryProduct(ctx context.Context, categoryID int32) ([]VProduct, error)
 	ReadOneCategory(ctx context.Context, categoryID int32) (ReadOneCategoryRow, error)
 	ReadOneProduct(ctx context.Context, productID int32) (ReadOneProductRow, error)
-	ReadQuantity(ctx context.Context, productID int32) (sql.NullInt32, error)
-	RemoveItemFromCart(ctx context.Context, arg RemoveItemFromCartParams) error
+	ReadProductQuantity(ctx context.Context, productID int32) (sql.NullInt32, error)
+	RemoveCartItem(ctx context.Context, arg RemoveCartItemParams) error
 	UpdateCartItemQuantity(ctx context.Context, arg UpdateCartItemQuantityParams) error
 }
 

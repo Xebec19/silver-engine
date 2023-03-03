@@ -175,12 +175,12 @@ func (q *Queries) ReadOneProduct(ctx context.Context, productID int32) (ReadOneP
 	return i, err
 }
 
-const readQuantity = `-- name: ReadQuantity :one
+const readProductQuantity = `-- name: ReadProductQuantity :one
 SELECT quantity from v_products where product_id = $1
 `
 
-func (q *Queries) ReadQuantity(ctx context.Context, productID int32) (sql.NullInt32, error) {
-	row := q.db.QueryRowContext(ctx, readQuantity, productID)
+func (q *Queries) ReadProductQuantity(ctx context.Context, productID int32) (sql.NullInt32, error) {
+	row := q.db.QueryRowContext(ctx, readProductQuantity, productID)
 	var quantity sql.NullInt32
 	err := row.Scan(&quantity)
 	return quantity, err

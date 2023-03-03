@@ -10,18 +10,34 @@ import (
 	"database/sql"
 )
 
-const addItemToCart = `-- name: AddItemToCart :exec
-CALL add_to_cart($1,$2,$3)
+const checkCartDetail = `-- name: CheckCartDetail :one
+select case when count(quantity) > 0 then 1 else 0 end as product_quantity from cart_details cd 
+where cart_id = $1 and product_id = $2
 `
 
-type AddItemToCartParams struct {
-	ProductID int32 `json:"product_id"`
-	Quantity  int32 `json:"quantity"`
-	UserID    int32 `json:"user_id"`
+type CheckCartDetailParams struct {
+	CartID    sql.NullInt32 `json:"cart_id"`
+	ProductID sql.NullInt32 `json:"product_id"`
 }
 
-func (q *Queries) AddItemToCart(ctx context.Context, arg AddItemToCartParams) error {
-	_, err := q.db.ExecContext(ctx, addItemToCart, arg.ProductID, arg.Quantity, arg.UserID)
+func (q *Queries) CheckCartDetail(ctx context.Context, arg CheckCartDetailParams) (interface{}, error) {
+	row := q.db.QueryRowContext(ctx, checkCartDetail, arg.CartID, arg.ProductID)
+	var product_quantity interface{}
+	err := row.Scan(&product_quantity)
+	return product_quantity, err
+}
+
+const deleteCartItem = `-- name: DeleteCartItem :exec
+delete from cart_details where cart_id = $1 and product_id = $2
+`
+
+type DeleteCartItemParams struct {
+	CartID    sql.NullInt32 `json:"cart_id"`
+	ProductID sql.NullInt32 `json:"product_id"`
+}
+
+func (q *Queries) DeleteCartItem(ctx context.Context, arg DeleteCartItemParams) error {
+	_, err := q.db.ExecContext(ctx, deleteCartItem, arg.CartID, arg.ProductID)
 	return err
 }
 
@@ -53,51 +69,34 @@ func (q *Queries) InsertCartItem(ctx context.Context, arg InsertCartItemParams) 
 	return err
 }
 
-const isProductInCart = `-- name: IsProductInCart :one
-select case when exists (select product_id from v_cart vc where product_id = $1 and user_id = $2)
-then 1 else 0 end is_product_in_cart
-`
-
-type IsProductInCartParams struct {
-	ProductID sql.NullInt32 `json:"product_id"`
-	UserID    sql.NullInt32 `json:"user_id"`
-}
-
-func (q *Queries) IsProductInCart(ctx context.Context, arg IsProductInCartParams) (interface{}, error) {
-	row := q.db.QueryRowContext(ctx, isProductInCart, arg.ProductID, arg.UserID)
-	var is_product_in_cart interface{}
-	err := row.Scan(&is_product_in_cart)
-	return is_product_in_cart, err
-}
-
 const readCartItemQuantity = `-- name: ReadCartItemQuantity :one
-select quantity from v_cart vc where product_id = $1 and user_id = $2
+select quantity from cart_details where cart_id = $1 and product_id = $2
 `
 
 type ReadCartItemQuantityParams struct {
+	CartID    sql.NullInt32 `json:"cart_id"`
 	ProductID sql.NullInt32 `json:"product_id"`
-	UserID    sql.NullInt32 `json:"user_id"`
 }
 
 func (q *Queries) ReadCartItemQuantity(ctx context.Context, arg ReadCartItemQuantityParams) (sql.NullInt32, error) {
-	row := q.db.QueryRowContext(ctx, readCartItemQuantity, arg.ProductID, arg.UserID)
+	row := q.db.QueryRowContext(ctx, readCartItemQuantity, arg.CartID, arg.ProductID)
 	var quantity sql.NullInt32
 	err := row.Scan(&quantity)
 	return quantity, err
 }
 
-const removeItemFromCart = `-- name: RemoveItemFromCart :exec
-CALL remove_item($1,$2,$3)
+const removeCartItem = `-- name: RemoveCartItem :exec
+update cart_details set quantity = quantity - $1 where cart_id = $2 and product_id = $3
 `
 
-type RemoveItemFromCartParams struct {
-	ProductID int32 `json:"product_id"`
-	Quantity  int32 `json:"quantity"`
-	UserID    int32 `json:"user_id"`
+type RemoveCartItemParams struct {
+	Quantity  sql.NullInt32 `json:"quantity"`
+	CartID    sql.NullInt32 `json:"cart_id"`
+	ProductID sql.NullInt32 `json:"product_id"`
 }
 
-func (q *Queries) RemoveItemFromCart(ctx context.Context, arg RemoveItemFromCartParams) error {
-	_, err := q.db.ExecContext(ctx, removeItemFromCart, arg.ProductID, arg.Quantity, arg.UserID)
+func (q *Queries) RemoveCartItem(ctx context.Context, arg RemoveCartItemParams) error {
+	_, err := q.db.ExecContext(ctx, removeCartItem, arg.Quantity, arg.CartID, arg.ProductID)
 	return err
 }
 
