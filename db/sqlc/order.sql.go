@@ -10,15 +10,6 @@ import (
 	"database/sql"
 )
 
-const createOrder = `-- name: CreateOrder :exec
-CALL create_order($1)
-`
-
-func (q *Queries) CreateOrder(ctx context.Context, userID int32) error {
-	_, err := q.db.ExecContext(ctx, createOrder, userID)
-	return err
-}
-
 const getOrderDetails = `-- name: GetOrderDetails :many
 select od_id, order_id, product_id, product_price, quantity, delivery_price
 from order_details od where order_id = $1

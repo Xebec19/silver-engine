@@ -25,20 +25,13 @@ func addProductIntoCart(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(util.ErrorResponse(err))
 	}
 
-	args := db.AddItemToCartParams{
-		ProductID: req.ProductId,
-		UserID:    int32(userId),
-		Quantity:  req.Quantity,
+	cartId, err := db.DBQuery.GetCartID(context.Background(), sql.NullInt32{Int32: int32(userId), Valid: true})
+
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(util.ErrorResponse(err))
 	}
 
-	/**
-	* todo get available quantity of product
-	* todo available quantity should not be greater than given quantity of the product
-	* todo check if product exists in cart details table
-	* todo if exists and given quantity + existing quantity < available quantity update cart details quantity
-	* todo else create new entry in cart details
-	 */
-	quantity, err := db.DBQuery.ReadQuantity(c.Context(), req.ProductId)
+	quantity, err := db.DBQuery.ReadProductQuantity(c.Context(), req.ProductId)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(util.ErrorResponse(err))
 	}
@@ -46,8 +39,6 @@ func addProductIntoCart(c *fiber.Ctx) error {
 	if req.Quantity > quantity.Int32 {
 		return c.Status(fiber.StatusBadRequest).JSON(util.ErrorResponse(errors.New("out of stock")))
 	}
-
-	cartId, err := db.DBQuery.GetCartID(context.Background(), sql.NullInt32{Int32: int32(userId), Valid: true})
 
 	cartDetailArgs := db.CheckCartDetailParams{
 		CartID:    sql.NullInt32{Int32: int32(cartId), Valid: true},
@@ -59,42 +50,89 @@ func addProductIntoCart(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(util.ErrorResponse(err))
 	}
 
-	if cartDetail == 0 {
+	if cartDetail.(int64) == 0 {
 		insertCartItemArgv := db.InsertCartItemParams{
 			CartID:    sql.NullInt32{Int32: int32(cartId), Valid: true},
 			ProductID: sql.NullInt32{Int32: int32(req.ProductId), Valid: true},
 			Quantity:  sql.NullInt32{Int32: int32(req.Quantity), Valid: true},
 		}
 
-		// todo insert new item in cart details
+		db.DBQuery.InsertCartItem(c.Context(), insertCartItemArgv)
+
+		return c.Status(fiber.StatusCreated).JSON(util.SuccessResponse(nil, "Product Added Successfully"))
 	}
 
-	// todo update existing item in cart details
+	updateCartArgv := db.UpdateCartItemQuantityParams{
+		Quantity:  sql.NullInt32{Int32: int32(req.Quantity), Valid: true},
+		ProductID: sql.NullInt32{Int32: int32(req.ProductId), Valid: true},
+		CartID:    sql.NullInt32{Int32: int32(cartId), Valid: true},
+	}
 
-	// call a procedure in db, to add product in cart
-	db.DBQuery.AddItemToCart(c.Context(), args)
+	db.DBQuery.UpdateCartItemQuantity(c.Context(), updateCartArgv)
 
 	return c.Status(fiber.StatusCreated).JSON(util.SuccessResponse(nil, "Product Added Successfully"))
+}
+
+type deleteCartSchema struct {
+	ProductId int32 `json:"product_id" binding:"required"`
+	Quantity  int32 `json:"quantity" binding:"required"`
 }
 
 // @Summary Remove a product from user's cart
 // @Router /cart/remove-product
 func removeProductFromCart(c *fiber.Ctx) error {
-	req := new(updateCartSchema)
+	req := new(deleteCartSchema)
 	userId := c.Locals("userid").(int64)
-	// parse and validate request body
 	if err := c.BodyParser(req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(util.ErrorResponse(err))
 	}
 
-	args := db.RemoveItemFromCartParams{
-		ProductID: req.ProductId,
-		UserID:    int32(userId),
-		Quantity:  req.Quantity,
+	cartId, err := db.DBQuery.GetCartID(context.Background(), sql.NullInt32{Int32: int32(userId), Valid: true})
+
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(util.ErrorResponse(err))
 	}
 
-	// call a procedure in db, to remove products from cart
-	db.DBQuery.RemoveItemFromCart(c.Context(), args)
+	argv := db.ReadCartItemQuantityParams{
+		CartID:    sql.NullInt32{Int32: int32(cartId), Valid: true},
+		ProductID: sql.NullInt32{Int32: int32(req.ProductId), Valid: true},
+	}
 
+	quantity, err := db.DBQuery.ReadCartItemQuantity(c.Context(), argv)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(util.ErrorResponse(err))
+	}
+
+	cartDetailArgs := db.CheckCartDetailParams{
+		CartID:    sql.NullInt32{Int32: int32(cartId), Valid: true},
+		ProductID: sql.NullInt32{Int32: int32(req.ProductId), Valid: true},
+	}
+
+	cartDetail, err := db.DBQuery.CheckCartDetail(c.Context(), cartDetailArgs)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(util.ErrorResponse(err))
+	}
+
+	if cartDetail.(int64) == 0 {
+		return c.Status(fiber.StatusInternalServerError).JSON(util.ErrorResponse(errors.New("product not found")))
+	}
+
+	if quantity.Int32 > int32(req.Quantity) {
+		argv := db.RemoveCartItemParams{
+			Quantity:  sql.NullInt32{Int32: int32(req.Quantity), Valid: true},
+			ProductID: sql.NullInt32{Int32: int32(req.ProductId), Valid: true},
+			CartID:    sql.NullInt32{Int32: int32(cartId), Valid: true},
+		}
+
+		db.DBQuery.RemoveCartItem(c.Context(), argv)
+		return c.Status(fiber.StatusAccepted).JSON(util.SuccessResponse(nil, "Product Removed Successfully"))
+	}
+
+	deleteCartItemParams := db.DeleteCartItemParams{
+		ProductID: sql.NullInt32{Int32: int32(req.ProductId), Valid: true},
+		CartID:    sql.NullInt32{Int32: int32(cartId), Valid: true},
+	}
+
+	db.DBQuery.DeleteCartItem(c.Context(), deleteCartItemParams)
 	return c.Status(fiber.StatusAccepted).JSON(util.SuccessResponse(nil, "Product Removed Successfully"))
 }
