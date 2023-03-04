@@ -6,16 +6,6 @@ import (
 	"github.com/gofiber/fiber"
 )
 
-// @Summary create an order
-// @Router /order/create-order
-func createOrder(c *fiber.Ctx) error {
-	userId := c.Locals("userid").(int64)
-
-	db.DBQuery.CreateOrder(c.Context(), int32(userId))
-
-	return c.Status(fiber.StatusCreated).JSON(util.SuccessResponse(nil, "Order Created"))
-}
-
 // @Summary get list of orders in paginated way
 func listOrders(c *fiber.Ctx) error {
 	userId := c.Locals("userid").(int64)
