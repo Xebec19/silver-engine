@@ -24,6 +24,10 @@ func RandomString(n int) string {
 	return sb.String()
 }
 
+func RandomNumber(maximum int) int {
+	return rand.Intn(maximum)
+}
+
 // RandomEmail generates a random email
 func RandomEmail() string {
 	return fmt.Sprintf("%s@email.com", RandomString(10))

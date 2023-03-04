@@ -8,10 +8,10 @@ import (
 )
 
 func TestJWTMaker(t *testing.T) {
-	email := RandomEmail()
+	id := RandomNumber(50)
 	duration := time.Minute
 
-	token, err := CreateToken(email, duration)
+	token, err := CreateToken(int32(id), duration)
 	require.NoError(t, err)
 	require.NotEmpty(t, token)
 
