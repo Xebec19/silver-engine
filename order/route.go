@@ -8,7 +8,6 @@ func SetRoute(app *fiber.App) {
 	// todo and check if user is making order
 	// todo of only those products of which she
 	// todo has made order
-	router.Get("/create-order")
 	router.Get("/read-order")
 	router.Get("/order-details")
 }
