@@ -9,7 +9,7 @@ import (
 	db "github.com/Xebec19/silver-engine/db/sqlc"
 	_ "github.com/Xebec19/silver-engine/docs"
 	"github.com/Xebec19/silver-engine/product"
-	"github.com/Xebec19/silver-engine/util"
+	util "github.com/Xebec19/silver-engine/util"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cache"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -59,33 +59,25 @@ func main() {
 	app.Use(logger.New(loggerConfig))
 	app.Use(logger.New())
 
+	// set up cors
+	app.Use(cors.New(cors.Config{
+		AllowHeaders:     "Origin,Content-Type,Accept,Content-Length,Accept-Language,Accept-Encoding,Connection,Access-Control-Allow-Origin",
+		AllowOrigins:     "*",
+		AllowCredentials: true,
+		AllowMethods:     "GET,POST,HEAD,PUT,DELETE,PATCH,OPTIONS",
+	}))
+
 	// set up cache
 	app.Use(cache.New())
 
-	// set up cors
-	app.Use(cors.New())
-
 	// Connect to database
 	db.Connect()
-
-	// render API Docs
 
 	// Public Routes
 	auth.SetRoute(app)
 	product.SetRoute(app)
 
-	app.Use(func(ctx *fiber.Ctx) error {
-		token := ctx.Get("Authorization")
-		claims, err := util.VerifyToken(token)
-
-		if err != nil {
-			return ctx.Status(fiber.StatusUnauthorized).JSON(util.ErrorResponse(err))
-		}
-		ctx.Locals("userid", int64(claims["Userid"].(float64))) // todo find a way to get these tokens in ctx
-
-		ctx.Next()
-		return nil
-	})
+	app.Use(util.JwtValidate)
 
 	// Private Routes
 	cart.SetRoute(app)
