@@ -41,7 +41,7 @@ func readCategories(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(util.ErrorResponse(err))
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(util.SuccessResponse(category, "Category fetched successfully"))
+	return c.Status(fiber.StatusOK).JSON(util.SuccessResponse(category, "Category fetched successfully"))
 }
 
 func readCategoryItems(c *fiber.Ctx) error {
