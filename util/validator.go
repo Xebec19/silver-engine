@@ -1,35 +1,29 @@
 package util
 
-import "github.com/gofiber/fiber"
+import (
+	"errors"
+	"strings"
 
-// func Validate(schema interface{}) func(*fiber.Ctx) error {
-// 	return func(c *fiber.Ctx) error {
-// 		// Parse the request body into a map
-// 		var body map[string]interface{}
-// 		err := c.BodyParser(&body)
-// 		if err != nil {
-// 			return err
-// 		}
+	"github.com/gofiber/fiber/v2"
+)
 
-// 		// Validate the request body against the given schema
-// 		err = govalidator.New(govalidator.Options{
-// 			Request: c.Request(),
-// 			Data:    body,
-// 			Rules:   schema,
-// 		}).ValidateJSON()
-// 		if err != nil {
-// 			return err
-// 		}
-
-// 		// If the request body is valid, continue with the next middleware
-// 		c.Next()
-// 		return nil
-// 	}
-// }
-
-func Validate(schema interface{}) func(*fiber.Ctx) error {
-	return func(c *fiber.Ctx) error {
-		c.Next()
-		return nil
+func JwtValidate(ctx *fiber.Ctx) error {
+	token := ctx.Get("Authorization")
+	if token == "" {
+		return ctx.Status(fiber.StatusUnauthorized).JSON(ErrorResponse(errors.New("missing authorization header")))
 	}
+	if !strings.HasPrefix(token, "Bearer ") {
+		return ctx.Status(fiber.StatusUnauthorized).JSON(ErrorResponse(errors.New("invalid authorization header")))
+	}
+	token = strings.TrimPrefix(token, "Bearer ")
+	claims, err := VerifyToken(token)
+	if err != nil {
+		return ctx.Status(fiber.StatusUnauthorized).JSON(ErrorResponse(err))
+	}
+	userid, ok := claims["Userid"].(float64)
+	if !ok {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(ErrorResponse(errors.New("invalid userid type")))
+	}
+	ctx.Locals("userid", int64(userid))
+	return ctx.Next()
 }
